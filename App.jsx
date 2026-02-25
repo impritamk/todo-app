@@ -7,7 +7,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("all");
 
-  const API = "http://localhost:3002/todos";
+  const API = "https://todo-app-mk1o.onrender.com";
 
   useEffect(() => {
     fetchTodos();
