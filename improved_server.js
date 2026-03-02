@@ -1,5 +1,5 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -19,18 +19,15 @@ app.get("/todos", (req, res) => {
 // Create a new todo
 app.post("/todos", (req, res) => {
   const { title } = req.body;
-
   if (!title || typeof title !== "string" || !title.trim()) {
     return res.status(400).json({ error: "Title is required and must be a non-empty string" });
   }
-
   const todo = {
     id: nextId++,
     title: title.trim(),
     completed: false,
     createdAt: new Date().toISOString()
   };
-
   todos.push(todo);
   res.status(201).json(todo);
 });
@@ -39,11 +36,9 @@ app.post("/todos", (req, res) => {
 app.put("/todos/:id", (req, res) => {
   const { id } = req.params;
   const todo = todos.find(t => t.id === parseInt(id));
-
   if (!todo) {
     return res.status(404).json({ error: "Todo not found" });
   }
-
   todo.completed = !todo.completed;
   res.json(todo);
 });
@@ -52,13 +47,10 @@ app.put("/todos/:id", (req, res) => {
 app.delete("/todos/:id", (req, res) => {
   const { id } = req.params;
   const initialLength = todos.length;
-
   todos = todos.filter(t => t.id !== parseInt(id));
-
   if (todos.length === initialLength) {
     return res.status(404).json({ error: "Todo not found" });
   }
-
   res.json({ message: "Todo deleted successfully" });
 });
 
