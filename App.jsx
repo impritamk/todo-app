@@ -7,7 +7,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("all");
 
- const API = "https://todo-app-mk1o.onrender.com/todos";
+  const API = "https://todo-app-mk1o.onrender.com/todos";
   
   useEffect(() => {
     fetchTodos();
@@ -48,7 +48,7 @@ function App() {
     try {
       const res = await fetch(`${API}/${id}`, { method: "PUT" });
       const updated = await res.json();
-      setTodos(todos.map(t => (t.id === id ? updated : t)));
+      setTodos(todos.map(t => (t._id === id ? updated : t)));
     } catch (err) {
       console.error("Failed to toggle todo:", err);
     }
@@ -57,7 +57,7 @@ function App() {
   const deleteTodo = async (id) => {
     try {
       await fetch(`${API}/${id}`, { method: "DELETE" });
-      setTodos(todos.filter(t => t.id !== id));
+      setTodos(todos.filter(t => t._id !== id));
     } catch (err) {
       console.error("Failed to delete todo:", err);
     }
@@ -152,7 +152,7 @@ function App() {
             <ul style={styles.todosList}>
               {filtered.map((todo, index) => (
                 <li
-                  key={todo.id}
+                  key={todo._id}
                   style={{
                     ...styles.todoItem,
                     ...(todo.completed ? styles.todoItemCompleted : {})
@@ -160,7 +160,7 @@ function App() {
                 >
                   <button
                     style={styles.todoCheckbox}
-                    onClick={() => toggleTodo(todo.id)}
+                    onClick={() => toggleTodo(todo._id)}
                     aria-label={`Toggle task: ${todo.title}`}
                   >
                     {todo.completed ? (
@@ -174,14 +174,14 @@ function App() {
                       ...styles.todoText,
                       ...(todo.completed ? styles.todoTextCompleted : {})
                     }}
-                    onClick={() => toggleTodo(todo.id)}
+                    onClick={() => toggleTodo(todo._id)}
                     title={todo.title}
                   >
                     {todo.title}
                   </span>
                   <button
                     style={styles.deleteBtn}
-                    onClick={() => deleteTodo(todo.id)}
+                    onClick={() => deleteTodo(todo._id)}
                     aria-label={`Delete task: ${todo.title}`}
                   >
                     <Trash2 size={18} color="#f87171" />
