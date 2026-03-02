@@ -17,6 +17,7 @@ function App() {
     try {
       const res = await fetch(API);
       const data = await res.json();
+      console.log("Fetched todos:", data);
       setTodos(data);
     } catch (err) {
       console.error("Failed to fetch todos:", err);
@@ -35,6 +36,7 @@ function App() {
         body: JSON.stringify({ title: title.trim() })
       });
       const data = await res.json();
+      console.log("Added todo:", data);
       setTodos([...todos, data]);
       setTitle("");
     } catch (err) {
@@ -44,19 +46,28 @@ function App() {
     }
   };
 
-  const toggleTodo = async (id) => {
+  const toggleTodo = async (todo) => {
+    const id = todo._id;
+    console.log("Toggling todo, id:", id, "full todo:", todo);
     try {
       const res = await fetch(`${API}/${id}`, { method: "PUT" });
       const updated = await res.json();
-      setTodos(todos.map(t => (t._id === id ? updated : t)));
+      console.log("Updated todo:", updated);
+      setTodos(todos.map(t => t._id === id ? updated : t));
     } catch (err) {
       console.error("Failed to toggle todo:", err);
     }
   };
 
-  const deleteTodo = async (id) => {
+  const deleteTodo = async (todo) => {
+    const id = todo._id;
+    console.log("Deleting todo, id:", id, "full todo:", todo);
     try {
-      await fetch(`${API}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API}/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        console.error("Delete failed:", res.status);
+        return;
+      }
       setTodos(todos.filter(t => t._id !== id));
     } catch (err) {
       console.error("Failed to delete todo:", err);
@@ -150,7 +161,7 @@ function App() {
             </div>
           ) : (
             <ul style={styles.todosList}>
-              {filtered.map((todo, index) => (
+              {filtered.map((todo) => (
                 <li
                   key={todo._id}
                   style={{
@@ -160,7 +171,7 @@ function App() {
                 >
                   <button
                     style={styles.todoCheckbox}
-                    onClick={() => toggleTodo(todo._id)}
+                    onClick={() => toggleTodo(todo)}
                     aria-label={`Toggle task: ${todo.title}`}
                   >
                     {todo.completed ? (
@@ -174,14 +185,14 @@ function App() {
                       ...styles.todoText,
                       ...(todo.completed ? styles.todoTextCompleted : {})
                     }}
-                    onClick={() => toggleTodo(todo._id)}
+                    onClick={() => toggleTodo(todo)}
                     title={todo.title}
                   >
                     {todo.title}
                   </span>
                   <button
                     style={styles.deleteBtn}
-                    onClick={() => deleteTodo(todo._id)}
+                    onClick={() => deleteTodo(todo)}
                     aria-label={`Delete task: ${todo.title}`}
                   >
                     <Trash2 size={18} color="#f87171" />
