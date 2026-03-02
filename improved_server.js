@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import mongoose from "mongoose";
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -7,64 +8,74 @@ const PORT = process.env.PORT || 3002;
 app.use(cors());
 app.use(express.json());
 
-// In-memory storage
-let todos = [];
-let nextId = 1;
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.log("❌ MongoDB error:", err));
+
+// Define Todo Schema
+const todoSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  completed: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Todo = mongoose.model("Todo", todoSchema);
 
 // Get all todos
-app.get("/todos", (req, res) => {
-  res.json(todos);
+app.get("/todos", async (req, res) => {
+  try {
+    const todos = await Todo.find();
+    res.json(todos);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch todos" });
+  }
 });
 
 // Create a new todo
-app.post("/todos", (req, res) => {
+app.post("/todos", async (req, res) => {
   const { title } = req.body;
   if (!title || typeof title !== "string" || !title.trim()) {
-    return res.status(400).json({ error: "Title is required and must be a non-empty string" });
+    return res.status(400).json({ error: "Title is required" });
   }
-  const todo = {
-    id: nextId++,
-    title: title.trim(),
-    completed: false,
-    createdAt: new Date().toISOString()
-  };
-  todos.push(todo);
-  res.status(201).json(todo);
+  
+  try {
+    const todo = new Todo({ title: title.trim() });
+    await todo.save();
+    res.status(201).json(todo);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create todo" });
+  }
 });
 
-// Toggle todo completion status
-app.put("/todos/:id", (req, res) => {
-  const { id } = req.params;
-  const todo = todos.find(t => t.id === parseInt(id));
-  if (!todo) {
-    return res.status(404).json({ error: "Todo not found" });
+// Toggle todo completion
+app.put("/todos/:id", async (req, res) => {
+  try {
+    const todo = await Todo.findById(req.params.id);
+    if (!todo) {
+      return res.status(404).json({ error: "Todo not found" });
+    }
+    todo.completed = !todo.completed;
+    await todo.save();
+    res.json(todo);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update todo" });
   }
-  todo.completed = !todo.completed;
-  res.json(todo);
 });
 
 // Delete a todo
-app.delete("/todos/:id", (req, res) => {
-  const { id } = req.params;
-  const initialLength = todos.length;
-  todos = todos.filter(t => t.id !== parseInt(id));
-  if (todos.length === initialLength) {
-    return res.status(404).json({ error: "Todo not found" });
+app.delete("/todos/:id", async (req, res) => {
+  try {
+    const todo = await Todo.findByIdAndDelete(req.params.id);
+    if (!todo) {
+      return res.status(404).json({ error: "Todo not found" });
+    }
+    res.json({ message: "Todo deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete todo" });
   }
-  res.json({ message: "Todo deleted successfully" });
-});
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: "Endpoint not found" });
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: "Internal server error" });
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
