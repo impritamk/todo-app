@@ -1,0 +1,14 @@
+{
+  "name": "todo-app-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "improved_server.js",
+  "scripts": {
+    "start": "node improved_server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "mongoose": "^7.0.0"
+  }
+}
